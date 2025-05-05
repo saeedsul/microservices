@@ -1,8 +1,10 @@
 
-# Designer  (Shopping Cart)
+# Shopping Cart
 
 .Net core 9 application with React TSX front end, using microservice clean architecture.
 RabbitMq and MassTransit with EF.
+- Api .net 9 project using Repository pattern
+- Use Sql server database Server=(localdb)\\mssqllocaldb  
 
 ## Folder Structure
 ```
@@ -16,6 +18,8 @@ launchSettings
 ```
 
 ---
+
+ 
 
 ## Base URL
 ```
@@ -44,19 +48,22 @@ Content-Type: application/json
         "postalCode":"LS16 7AZ"
         }
 }
+   
+---
+
+## Run Locally
+1. Build and run the solution using Visual Studio or .NET CLI.
+2. API will be available at `http://localhost:5178/api`.
 
 ---
 
-![Main Image](image.png)
-![Step 1](image-1.png)
-![Step 2](image-2.png)
-![Step 3](image-3.png)
+## React App 
+1. make sure api is running
+2. npm run dev
 
  
-## For HTTP File Execution
-More about HTTP files: [https://aka.ms/vs/httpfile](https://aka.ms/vs/httpfile)
+![alt text](image.png)
+
+![alt text](image-1.png)
 
 ---
-
-## License
-This project is licensed under the MIT License.
