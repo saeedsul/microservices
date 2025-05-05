@@ -46,13 +46,12 @@ Content-Type: application/json
 }
 
 ---
-![alt text](image-1.png)
- 
-![alt text](image.png)
 
-![alt text](image-2.png)
+![Main Image](image.png)
+![Step 1](image-1.png)
+![Step 2](image-2.png)
+![Step 3](image-3.png)
 
-![alt text](image-3.png)
  
 ## For HTTP File Execution
 More about HTTP files: [https://aka.ms/vs/httpfile](https://aka.ms/vs/httpfile)
