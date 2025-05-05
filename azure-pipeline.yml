@@ -1,0 +1,137 @@
+trigger:
+- main
+
+variables:
+  buildConfiguration: 'Release'
+  dotnetVersion: '9.0.x'
+  nodeVersion: '20.x'
+  testResultsFolder: '$(Build.SourcesDirectory)/TestResults'
+  artifactFolder: '$(Build.ArtifactStagingDirectory)/deploy'
+  DOTNET_ROOT: $(Agent.ToolsDirectory)/dotnet
+
+pool:
+  vmImage: 'windows-latest'
+
+jobs:
+- job: Build_Test_Publish
+  displayName: 'Build, Test and Publish Artifacts'
+  steps: 
+
+  # UX Build steps...
+  - task: NodeTool@0
+    displayName: 'Install Node $(nodeVersion)'
+    inputs:
+      versionSpec: $(nodeVersion)
+
+  - script: |
+      echo "Listing contents of $(Build.SourcesDirectory)"
+      dir $(Build.SourcesDirectory)
+    displayName: 'Check contents of Sources Directory'
+
+  # Ensure UX folder exists before proceeding
+  - script: |
+      echo "Listing contents of UX folder"
+      dir "$(Build.SourcesDirectory)/UX"
+    displayName: 'Check contents of UX folder'
+
+
+  - script: npm install
+    displayName: 'Install UX Dependencies'
+    workingDirectory: '$(Build.SourcesDirectory)/UX'
+
+  - script: npm run build
+    displayName: 'Build UX'
+    workingDirectory: '$(Build.SourcesDirectory)/UX'
+
+  # Artifact packaging...
+  - task: CopyFiles@2
+    displayName: 'Copy UX Files to Artifact Folder'
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)/UX/dist'
+      TargetFolder: '$(artifactFolder)/UX'
+      CleanTargetFolder: true
+
+  # Check if .NET SDK is already installed
+  - powershell: |
+      $dotnetInstalled = Get-Command dotnet -ErrorAction SilentlyContinue
+      if (-not $dotnetInstalled) {
+        Write-Host "Installing .NET SDK version $(dotnetVersion)..."
+        dotnet --version
+      } else {
+        Write-Host ".NET SDK is already installed"
+      }
+    displayName: 'Check if .NET SDK is installed'
+
+  # Install .NET SDK if not installed (this step will execute only if not already installed)
+  - task: UseDotNet@2
+    displayName: 'Use .NET $(dotnetVersion)'
+    inputs:
+      version: $(dotnetVersion)
+      packageType: 'sdk'
+      performMultiLevelLookup: true
+      includePreviewVersions: false
+      installationPath: $(Agent.ToolsDirectory)/dotnet
+
+  # Restore packages
+  - task: DotNetCoreCLI@2
+    displayName: 'Restore API Packages'
+    inputs:
+      command: 'restore'
+      projects: '**/*.csproj'
+      feedsToUse: 'select' 
+
+  # Build API
+  - task: DotNetCoreCLI@2
+    displayName: 'Build API'
+    inputs:
+      command: 'build'
+      arguments: '--configuration $(buildConfiguration) --no-restore'
+      projects: '**/*.csproj'
+ 
+ 
+  # 1. Run tests  
+  - task: DotNetCoreCLI@2
+    displayName: 'Run xUnit Tests'
+    inputs:
+      command: 'test'
+      projects: '**/Test/*.csproj'
+
+
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results'
+    inputs:
+      testResultsFormat: 'VSTest'
+      testResultsFiles: 'test_results.trx'
+      searchFolder: '$(testResultsFolder)'
+      failTaskOnFailedTests: true 
+
+  # Publish API.
+  - task: DotNetCoreCLI@2
+    displayName: 'Publish API'
+    inputs:
+      command: 'publish'
+      arguments: '--configuration $(buildConfiguration) --output $(artifactFolder)/Api'
+      projects: '**/Api/*.csproj'
+
+  - task: ArchiveFiles@2
+    displayName: 'Package API'
+    inputs:
+      rootFolderOrFile: '$(artifactFolder)/Api'
+      archiveType: 'zip'
+      archiveFile: '$(artifactFolder)/app_packages/Api.zip'
+      replaceExistingArchive: true
+
+  - task: ArchiveFiles@2
+    displayName: 'Package UX'
+    inputs:
+      rootFolderOrFile: '$(artifactFolder)/UX'
+      archiveType: 'zip'
+      archiveFile: '$(artifactFolder)/app_packages/UX.zip'
+      replaceExistingArchive: true
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Deployment Artifacts'
+    inputs:
+      PathtoPublish: '$(artifactFolder)/app_packages'
+      ArtifactName: 'deployment'
+      publishLocation: 'Container'
