@@ -29,16 +29,18 @@ internal class Program
 
         builder.Services.AddEndpointsApiExplorer();
 
+        var rabbitConfig = builder.Configuration.GetSection("RabbitMQ");
+
         builder.Services.AddMassTransit(x =>
         {
             x.AddConsumer<OrderCreatedConsumer>();
 
             x.UsingRabbitMq((context, cfg) =>
             {
-                cfg.Host("localhost", "/", h =>
+                cfg.Host(rabbitConfig["Host"], "/", h =>
                 {
-                    h.Username("guest");
-                    h.Password("guest");
+                    h.Username(rabbitConfig["Username"]);
+                    h.Password(rabbitConfig["Password"]);
                 });
 
                 cfg.ReceiveEndpoint("order-created-queue", e =>
@@ -47,6 +49,7 @@ internal class Program
                 });
             });
         });
+         
 
         builder.Services.AddCors(options =>
         {

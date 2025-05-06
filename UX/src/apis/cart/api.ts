@@ -4,6 +4,6 @@ import { ApiResponse, CreateOrderRequest, CreateOrderResponse } from '../../type
  
  
 export const create = async (order: CreateOrderRequest): Promise<ApiResponse<CreateOrderResponse>> => {
-    const response = await axios.post("/order/create", order);
+    const response = await axios.post("/api/order/create", order);
     return response.data;
 };
