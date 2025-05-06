@@ -13,13 +13,34 @@ Shopping.sln
 azure-pipeline.yml
 launchSettings 
 |-- Api/             # ASP.NET Core Web API project
+|-- IAC/             # Infrastructure as Code (Terraform scripts)
 |-- Test/            # Unit and Integration tests
 |-- UX/              # Frontend application (React TSX.)
 ```
 
 ---
-
  
+
+## Infrastructure as Code (IAC)
+- The `IAC/` folder contains Terraform scripts for provisioning cloud infrastructure (e.g., App, Database).
+- cd IAC
+- terraform init
+- terraform plan
+- terraform apply --auto-approve
+- this will build api project and great the api contianer and the sql db container
+- open a browser and go to http://localhost:80 
+
+---
+
+## Docker
+- A `Dockerfile` is available to containerize and run the API.
+- Build and run the Docker container:
+  ```bash
+  docker build -t movies-api .
+  docker run -p 80:80 movies-api
+  ```
+
+---
 
 ## Base URL
 ```
@@ -62,8 +83,12 @@ Content-Type: application/json
 2. npm run dev
 
  
-![alt text](image.png)
+![place order](image.png)
 
-![alt text](image-1.png)
+![get products](image-1.png)
+
+![react app1](image-2.png)
+
+![react app2](image-3.png)
 
 ---
